@@ -1,0 +1,83 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+
+<h2>Index</h2>
+<div id="jqxgrid"></div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        // prepare the data
+        var source = {
+            datatype: "json",
+            datafields: [{ name: 'ShippedDate', type: 'date' },
+            { name: 'ShipName' },
+            { name: 'ShipAddress' },
+            { name: 'ShipCity' },
+            { name: 'ShipCountry' }],
+            url: "@Url.Action("GetOrders","Home")",
+            type: 'POST',
+            contentType:'application/json',
+            // update the grid and send a request to the server.
+            filter: function () {
+                $("#jqxgrid").jqxGrid('updatebounddata', 'filter');
+            },
+            // update the grid and send a request to the server.
+            sort: function () {
+                $("#jqxgrid").jqxGrid('updatebounddata', 'sort');
+            },
+            formatData: function (data) {
+                var arrfilters = [];
+                debugger;
+               
+                if (data.filterscount > 0) {
+
+                    for (var i = 0; i < data.filterscount; i++) { 
+                        arrfilters.push({
+                            datafield: data["filterdatafield" + i],
+                            filtervalue: data["filtervalue" + i],
+                            filtercondition:data["filtercondition" + i]
+                        })                     
+                        
+                    }
+                }
+                data.filters = arrfilters;
+					
+                    return JSON.stringify(data);
+                },
+            root: 'Orders',
+            beforeprocessing: function (data) {
+                source.totalrecords = data.TotalRows;
+            }
+        };
+        var dataadapter = new $.jqx.dataAdapter(source, {
+            loadError: function (xhr, status, error) {
+                alert(error);
+            }
+        });
+        // initialize jqxGrid
+        $("#jqxgrid").jqxGrid({
+            source: dataadapter,
+            width: '100%',
+            Height: 400,
+
+            filterable: true,
+            showfilterrow: true,
+            sortable: true,
+            autoheight: true,
+            groupable: true,
+            groups: ['ShipCity'],
+            pagesize:20,
+            pageable: true,
+            virtualmode: true,
+            rendergridrows: function (obj) {
+                return obj.data;
+            },
+            columns: [{ text: 'Shipped Date', filterable: false, datafield: 'ShippedDate', cellsformat: 'yyyy-MM-dd', width: 200 },
+            { text: 'Ship Name', datafield: 'ShipName', width: 200 },
+            { text: 'Address', datafield: 'ShipAddress', width: 180 },
+            { text: 'City', datafield: 'ShipCity', width: 100 },
+            { text: 'Country', datafield: 'ShipCountry', width: 140 }]
+        });
+    });
+</script>
